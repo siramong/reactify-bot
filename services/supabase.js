@@ -1,9 +1,11 @@
 const { createClient } = require('@supabase/supabase-js');
 const config = require('../config/config');
+const log = require('../utils/consoleLogger');
 
 class SupabaseService {
   constructor() {
     this.client = createClient(config.SUPABASE_URL, config.SUPABASE_KEY);
+    log.success('SUPABASE', 'Cliente inicializado correctamente');
   }
 
   // Get user from database
@@ -21,7 +23,7 @@ class SupabaseService {
 
       return data;
     } catch (error) {
-      console.error('Error getting user:', error);
+      log.error('BASE DE DATOS', 'Error obteniendo usuario', error);
       throw error;
     }
   }
@@ -43,9 +45,10 @@ class SupabaseService {
         .single();
 
       if (error) throw error;
+      log.database('CREAR USUARIO', `${username} (${userId})`);
       return data;
     } catch (error) {
-      console.error('Error creating user:', error);
+      log.error('BASE DE DATOS', 'Error creando usuario', error);
       throw error;
     }
   }
@@ -61,7 +64,7 @@ class SupabaseService {
       
       return user;
     } catch (error) {
-      console.error('Error ensuring user exists:', error);
+      log.error('BASE DE DATOS', 'Error asegurando existencia de usuario', error);
       throw error;
     }
   }
@@ -69,7 +72,7 @@ class SupabaseService {
   // Update user coins (add or subtract)
   async updateCoins(userId, amount) {
     try {
-      const { data, error } = await this.client
+      const { data, error} = await this.client
         .from('coins')
         .update({ amount })
         .eq('userId', userId)
@@ -79,7 +82,7 @@ class SupabaseService {
       if (error) throw error;
       return data;
     } catch (error) {
-      console.error('Error updating coins:', error);
+      log.error('BASE DE DATOS', 'Error actualizando monedas', error);
       throw error;
     }
   }
@@ -91,7 +94,7 @@ class SupabaseService {
       const newAmount = (user?.amount || 0) + amount;
       return await this.updateCoins(userId, newAmount);
     } catch (error) {
-      console.error('Error adding coins:', error);
+      log.error('BASE DE DATOS', 'Error añadiendo monedas', error);
       throw error;
     }
   }
@@ -109,7 +112,7 @@ class SupabaseService {
       const newAmount = currentAmount - amount;
       return await this.updateCoins(userId, newAmount);
     } catch (error) {
-      console.error('Error removing coins:', error);
+      log.error('BASE DE DATOS', 'Error removiendo monedas', error);
       throw error;
     }
   }
@@ -126,7 +129,7 @@ class SupabaseService {
       if (error) throw error;
       return data || [];
     } catch (error) {
-      console.error('Error getting top users:', error);
+      log.error('BASE DE DATOS', 'Error obteniendo top usuarios', error);
       throw error;
     }
   }
@@ -145,7 +148,7 @@ class SupabaseService {
       if (error) throw error;
       return (count || 0) + 1;
     } catch (error) {
-      console.error('Error getting user rank:', error);
+      log.error('BASE DE DATOS', 'Error obteniendo rank de usuario', error);
       throw error;
     }
   }
@@ -161,7 +164,7 @@ class SupabaseService {
       if (error) throw error;
       return data || [];
     } catch (error) {
-      console.error('Error getting all users:', error);
+      log.error('BASE DE DATOS', 'Error obteniendo todos los usuarios', error);
       throw error;
     }
   }
@@ -177,9 +180,10 @@ class SupabaseService {
         .single();
 
       if (error) throw error;
+      log.database('RESET MONEDAS', `Usuario: ${userId}`);
       return data;
     } catch (error) {
-      console.error('Error resetting user coins:', error);
+      log.error('BASE DE DATOS', 'Error reseteando monedas de usuario', error);
       throw error;
     }
   }
@@ -193,9 +197,10 @@ class SupabaseService {
         .neq('userId', '');
 
       if (error) throw error;
+      log.database('RESET MONEDAS', 'Todos los usuarios');
       return data;
     } catch (error) {
-      console.error('Error resetting all coins:', error);
+      log.error('BASE DE DATOS', 'Error reseteando todas las monedas', error);
       throw error;
     }
   }
@@ -211,9 +216,10 @@ class SupabaseService {
         .single();
 
       if (error) throw error;
+      log.database('ACTUALIZAR CURSO', `${userId} -> ${curso}`);
       return data;
     } catch (error) {
-      console.error('Error updating user curso:', error);
+      log.error('BASE DE DATOS', 'Error actualizando curso de usuario', error);
       throw error;
     }
   }
@@ -235,9 +241,10 @@ class SupabaseService {
         .single();
 
       if (error) throw error;
+      log.database('CREAR ACTIVIDAD', `${name} - Curso: ${curso}`);
       return data;
     } catch (error) {
-      console.error('Error creating activity:', error);
+      log.error('BASE DE DATOS', 'Error creando actividad', error);
       throw error;
     }
   }
@@ -253,7 +260,7 @@ class SupabaseService {
       if (error) throw error;
       return data || [];
     } catch (error) {
-      console.error('Error getting activities:', error);
+      log.error('BASE DE DATOS', 'Error obteniendo actividades', error);
       throw error;
     }
   }

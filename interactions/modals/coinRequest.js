@@ -1,13 +1,14 @@
-const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags } = require('discord.js');
 const supabaseService = require('../../services/supabase');
 const config = require('../../config/config');
 const strings = require('../../config/strings');
+const log = require('../../utils/consoleLogger');
 
 module.exports = {
   customId: 'coinrequest',
   async execute(interaction) {
     try {
-      await interaction.deferReply({ ephemeral: true });
+      await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
       // Get form values
       const reason = interaction.fields.getTextInputValue('reason');
@@ -19,7 +20,7 @@ module.exports = {
       
       if (isNaN(amount) || amount < 1 || amount > 1000) {
         await interaction.editReply({
-          content: '❌ La cantidad debe ser un número entre 1 y 1000.'
+          content: '`❌` La cantidad debe ser un número entre 1 y 1000.'
         });
         return;
       }
@@ -43,7 +44,7 @@ module.exports = {
             inline: true
           },
           {
-            name: strings.FIELDS.CURSO,
+            name: strings.FIELDS.NIVEL,
             value: user?.curso || '*No configurado*',
             inline: true
           },
@@ -83,12 +84,14 @@ module.exports = {
         components: [row]
       });
 
+      log.info('SOLICITUD', `Monedas solicitadas: ${amount} por ${interaction.user.tag}`);
+
       // Respond to user
       await interaction.editReply({
         content: strings.SUCCESS.REQUEST_SENT
       });
     } catch (error) {
-      console.error('Error in coin request modal handler:', error);
+      log.error('MODAL', 'Error en solicitud de monedas', error);
       await interaction.editReply({
         content: strings.ERRORS.DATABASE_ERROR
       });

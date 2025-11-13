@@ -1,20 +1,22 @@
-const { EmbedBuilder, StringSelectMenuBuilder, ActionRowBuilder } = require('discord.js');
+const { EmbedBuilder, StringSelectMenuBuilder, ActionRowBuilder, MessageFlags } = require('discord.js');
 const supabaseService = require('../../services/supabase');
 const openrouterService = require('../../services/openrouter');
 const config = require('../../config/config');
-const { CURSOS } = require('../../config/enums');
+const { NIVELES } = require('../../config/enums');
 const { validateDate } = require('../../utils/validation');
 const { replacePlaceholders } = require('../../utils/formatting');
 const strings = require('../../config/strings');
+const { getLogger } = require('../../utils/logger');
+const log = require('../../utils/consoleLogger');
 
-// Store pending activities that need curso selection
+// Store pending activities that need nivel selection
 const pendingActivities = new Map();
 
 module.exports = {
   customId: 'activitycreate',
   async execute(interaction) {
     try {
-      await interaction.deferReply({ ephemeral: true });
+      await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
       // Get form values
       const title = interaction.fields.getTextInputValue('title');
@@ -37,14 +39,14 @@ module.exports = {
       // Parse reward
       const reward = parseInt(rewardStr) || 0;
 
-      // Show curso selection menu
+      // Show nivel selection menu
       const selectMenu = new StringSelectMenuBuilder()
-        .setCustomId(`activitycurso_${interaction.user.id}_${Date.now()}`)
-        .setPlaceholder('Selecciona el curso')
+        .setCustomId(`activitynivel_${interaction.user.id}_${Date.now()}`)
+        .setPlaceholder('Selecciona el nivel')
         .addOptions(
-          CURSOS.map(curso => ({
-            label: curso,
-            value: curso
+          NIVELES.map(nivel => ({
+            label: nivel,
+            value: nivel
           }))
         );
 
@@ -62,12 +64,12 @@ module.exports = {
       });
 
       await interaction.editReply({
-        content: '📚 Selecciona el curso para esta actividad:',
+        content: '`📚` Selecciona el nivel para esta actividad:',
         components: [row]
       });
 
       // Wait for selection
-      const filter = i => i.customId.startsWith('activitycurso_') && i.user.id === interaction.user.id;
+      const filter = i => i.customId.startsWith('activitynivel_') && i.user.id === interaction.user.id;
       
       try {
         const selection = await interaction.channel.awaitMessageComponent({
@@ -77,7 +79,7 @@ module.exports = {
 
         await selection.deferUpdate();
 
-        const curso = selection.values[0];
+        const nivel = selection.values[0];
 
         // Update initial message
         await interaction.editReply({
@@ -85,20 +87,20 @@ module.exports = {
           components: []
         });
 
-        // Generate AI summary
+        // Generate AI summary (using FREE model)
         let aiSummary = '';
         try {
           aiSummary = await openrouterService.summarizeDocumentation(documentation);
         } catch (error) {
-          console.error('Error generating AI summary:', error);
+          log.error('OPENROUTER', 'Error generando resumen IA', error);
           aiSummary = 'No se pudo generar resumen automático.';
         }
 
-        // Get forum channel for curso
-        const forumChannelId = config.FORUM_CHANNELS[curso];
+        // Get forum channel for nivel
+        const forumChannelId = config.FORUM_CHANNELS[nivel];
         if (!forumChannelId) {
           await interaction.editReply({
-            content: `❌ No se encontró el canal del foro para ${curso}`
+            content: `\`❌\` No se encontró el canal del foro para ${nivel}`
           });
           return;
         }
@@ -157,12 +159,26 @@ module.exports = {
         await threadMessage.react('✅');
 
         // Save to database
-        await supabaseService.createActivity(title, interaction.user.id, curso, thread.id);
+        // Note: For nivel-wide activities, we store the nivel name in the curso field
+        // since activities apply to all cursos in that nivel (e.g., "Primero" applies to both 1E1 and 1E2)
+        await supabaseService.createActivity(title, interaction.user.id, nivel, thread.id);
+
+        // Log activity creation
+        const logger = getLogger();
+        await logger.logTransaction({
+          type: 'ACTIVITY_CREATED',
+          title: title,
+          nivel: nivel,
+          reward: reward,
+          performedBy: interaction.user.id
+        });
+
+        log.info('ACTIVIDAD', `Creada: ${title} - Nivel: ${nivel}`);
 
         // Respond to teacher
         const response = replacePlaceholders(strings.SUCCESS.ACTIVITY_CREATED, {
           title: title,
-          curso: curso
+          nivel: nivel
         });
 
         await interaction.editReply({
@@ -174,7 +190,7 @@ module.exports = {
       } catch (error) {
         if (error.message === 'Collector received no interactions before ending with reason: time') {
           await interaction.editReply({
-            content: '❌ Tiempo de espera agotado. Por favor, intenta de nuevo.',
+            content: '`❌` Tiempo de espera agotado. Por favor, intenta de nuevo.',
             components: []
           });
         } else {
@@ -182,7 +198,7 @@ module.exports = {
         }
       }
     } catch (error) {
-      console.error('Error in activity create modal handler:', error);
+      log.error('MODAL', 'Error en creación de actividad', error);
       await interaction.editReply({
         content: strings.ERRORS.DATABASE_ERROR,
         components: []

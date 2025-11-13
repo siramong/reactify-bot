@@ -10,22 +10,27 @@ module.exports = {
   TEACHER_CHANNEL_ID: process.env.TEACHER_CHANNEL_ID,
   DEVELOPER_USER_ID: process.env.DEVELOPER_USER_ID,
   
+  // Discord channels organized by NIVEL (not curso)
   FORUM_CHANNELS: {
-    '1E1': process.env.FORUM_1E1_ID,
-    '1E2': process.env.FORUM_1E2_ID,
-    '2E1': process.env.FORUM_2E1_ID,
-    '2E2': process.env.FORUM_2E2_ID,
-    '3E1': process.env.FORUM_3E1_ID,
-    '3E2': process.env.FORUM_3E2_ID,
+    'Primero': process.env.FORUM_PRIMERO_ID,
+    'Segundo': process.env.FORUM_SEGUNDO_ID,
+    'Tercero': process.env.FORUM_TERCERO_ID,
   },
   
   ANNOUNCEMENT_CHANNELS: {
-    '1E1': process.env.ANNOUNCEMENT_1E1_ID,
-    '1E2': process.env.ANNOUNCEMENT_1E2_ID,
-    '2E1': process.env.ANNOUNCEMENT_2E1_ID,
-    '2E2': process.env.ANNOUNCEMENT_2E2_ID,
-    '3E1': process.env.ANNOUNCEMENT_3E1_ID,
-    '3E2': process.env.ANNOUNCEMENT_3E2_ID,
+    'Primero': process.env.ANNOUNCEMENT_PRIMERO_ID,
+    'Segundo': process.env.ANNOUNCEMENT_SEGUNDO_ID,
+    'Tercero': process.env.ANNOUNCEMENT_TERCERO_ID,
+  },
+  
+  // Map curso to nivel for channel lookups
+  CURSO_TO_NIVEL: {
+    '1E1': 'Primero',
+    '1E2': 'Primero',
+    '2E1': 'Segundo',
+    '2E2': 'Segundo',
+    '3E1': 'Tercero',
+    '3E2': 'Tercero',
   },
   
   BID_INCREMENT: 10, // Minimum bid increase

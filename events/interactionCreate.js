@@ -1,6 +1,7 @@
-const { Events } = require('discord.js');
+const { Events, MessageFlags } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
+const log = require('../utils/consoleLogger');
 
 // Load button handlers
 const buttonHandlers = new Map();
@@ -47,21 +48,24 @@ module.exports = {
       }
 
       if (!command) {
-        console.error(`No command matching ${commandName} was found.`);
+        log.error('COMANDO', `No se encontró el comando: ${commandName}`);
         return;
       }
+
+      const fullCommand = subcommand ? `${commandName} ${subcommand}` : commandName;
+      log.command(fullCommand, interaction.user.tag, interaction.guild?.name || 'DM');
 
       try {
         await command.execute(interaction);
       } catch (error) {
-        console.error('Error executing command:', error);
+        log.error('COMANDO', `Error ejecutando /${fullCommand}`, error);
         
-        const errorMessage = '❌ Hubo un error al ejecutar este comando.';
+        const errorMessage = '`❌` Hubo un error al ejecutar este comando.';
         
         if (interaction.replied || interaction.deferred) {
-          await interaction.followUp({ content: errorMessage, ephemeral: true });
+          await interaction.followUp({ content: errorMessage, flags: MessageFlags.Ephemeral });
         } else {
-          await interaction.reply({ content: errorMessage, ephemeral: true });
+          await interaction.reply({ content: errorMessage, flags: MessageFlags.Ephemeral });
         }
       }
     }
@@ -73,21 +77,23 @@ module.exports = {
       const handler = buttonHandlers.get(baseId);
       
       if (!handler) {
-        console.error(`No button handler for ${customId}`);
+        log.error('BOTÓN', `No se encontró el manejador para: ${customId}`);
         return;
       }
+
+      log.interaction('BOTÓN', interaction.user.tag, customId);
 
       try {
         await handler.execute(interaction);
       } catch (error) {
-        console.error('Error handling button:', error);
+        log.error('BOTÓN', `Error procesando botón: ${customId}`, error);
         
-        const errorMessage = '❌ Hubo un error al procesar esta acción.';
+        const errorMessage = '`❌` Hubo un error al procesar esta acción.';
         
         if (interaction.replied || interaction.deferred) {
-          await interaction.followUp({ content: errorMessage, ephemeral: true });
+          await interaction.followUp({ content: errorMessage, flags: MessageFlags.Ephemeral });
         } else {
-          await interaction.reply({ content: errorMessage, ephemeral: true });
+          await interaction.reply({ content: errorMessage, flags: MessageFlags.Ephemeral });
         }
       }
     }
@@ -99,21 +105,23 @@ module.exports = {
       const handler = modalHandlers.get(baseId);
       
       if (!handler) {
-        console.error(`No modal handler for ${customId}`);
+        log.error('MODAL', `No se encontró el manejador para: ${customId}`);
         return;
       }
+
+      log.interaction('MODAL', interaction.user.tag, customId);
 
       try {
         await handler.execute(interaction);
       } catch (error) {
-        console.error('Error handling modal:', error);
+        log.error('MODAL', `Error procesando formulario: ${customId}`, error);
         
-        const errorMessage = '❌ Hubo un error al procesar este formulario.';
+        const errorMessage = '`❌` Hubo un error al procesar este formulario.';
         
         if (interaction.replied || interaction.deferred) {
-          await interaction.followUp({ content: errorMessage, ephemeral: true });
+          await interaction.followUp({ content: errorMessage, flags: MessageFlags.Ephemeral });
         } else {
-          await interaction.reply({ content: errorMessage, ephemeral: true });
+          await interaction.reply({ content: errorMessage, flags: MessageFlags.Ephemeral });
         }
       }
     }

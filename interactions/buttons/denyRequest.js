@@ -1,6 +1,8 @@
-const { EmbedBuilder } = require('discord.js');
+const { EmbedBuilder, MessageFlags } = require('discord.js');
 const { checkTeacherRole } = require('../../utils/permissions');
 const strings = require('../../config/strings');
+const { getLogger } = require('../../utils/logger');
+const log = require('../../utils/consoleLogger');
 
 module.exports = {
   customId: 'deny',
@@ -10,7 +12,7 @@ module.exports = {
       if (!checkTeacherRole(interaction.member)) {
         await interaction.reply({
           content: strings.ERRORS.NO_PERMISSION,
-          ephemeral: true
+          flags: MessageFlags.Ephemeral
         });
         return;
       }
@@ -31,11 +33,22 @@ module.exports = {
 
       if (!userId) {
         await interaction.followUp({
-          content: '❌ Error al procesar la solicitud.',
-          ephemeral: true
+          content: '`❌` Error al procesar la solicitud.',
+          flags: MessageFlags.Ephemeral
         });
         return;
       }
+
+      // Log transaction
+      const logger = getLogger();
+      await logger.logTransaction({
+        type: 'REQUEST_DENIED',
+        userId: userId,
+        amount: amount,
+        performedBy: interaction.user.id
+      });
+
+      log.info('SOLICITUD', `Rechazada: ${amount} monedas - Usuario: ${userId}`);
 
       // Update embed to show denied
       const updatedEmbed = EmbedBuilder.from(embed)
@@ -50,20 +63,20 @@ module.exports = {
       // Try to DM the user
       try {
         const user = await interaction.client.users.fetch(userId);
-        await user.send(`❌ Tu solicitud de ${amount} monedas ha sido rechazada.`);
+        await user.send(`\`❌\` Tu solicitud de ${amount} monedas ha sido rechazada.`);
       } catch (error) {
-        console.log('Could not send DM to user:', error);
+        log.warn('DM', 'No se pudo enviar DM al usuario');
       }
 
       await interaction.followUp({
-        content: '✅ Solicitud rechazada',
-        ephemeral: true
+        content: '`✅` Solicitud rechazada',
+        flags: MessageFlags.Ephemeral
       });
     } catch (error) {
-      console.error('Error in deny button handler:', error);
+      log.error('BOTÓN', 'Error en botón de rechazar', error);
       await interaction.followUp({
         content: strings.ERRORS.DATABASE_ERROR,
-        ephemeral: true
+        flags: MessageFlags.Ephemeral
       });
     }
   },
