@@ -2,7 +2,19 @@ const config = require('../config/config');
 
 // Check if user has teacher role
 function checkTeacherRole(member) {
-  if (!member || !member.roles) return false;
+  if (!member) return false;
+
+  // Allow developer override by user ID (useful for testing)
+  try {
+    const memberId = member.user ? member.user.id : (member.id || null);
+    if (config.DEVELOPER_USER_ID && memberId && memberId === config.DEVELOPER_USER_ID) {
+      return true;
+    }
+  } catch (err) {
+    // ignore and continue to role check
+  }
+
+  if (!member.roles) return false;
   return member.roles.cache.has(config.TEACHER_ROLE_ID);
 }
 

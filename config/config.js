@@ -8,6 +8,7 @@ module.exports = {
   N8N_WEBHOOK_URL: process.env.N8N_WEBHOOK_URL,
   TEACHER_ROLE_ID: process.env.TEACHER_ROLE_ID,
   TEACHER_CHANNEL_ID: process.env.TEACHER_CHANNEL_ID,
+  DEVELOPER_USER_ID: process.env.DEVELOPER_USER_ID,
   
   FORUM_CHANNELS: {
     '1E1': process.env.FORUM_1E1_ID,

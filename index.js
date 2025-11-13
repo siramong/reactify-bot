@@ -42,9 +42,10 @@ function loadCommands(dir, commandPath = []) {
   }
 }
 
-// Load all commands
-loadCommands(['coins']);
-loadCommands(['activity']);
+// Load all commands recursively from the `commands` folder
+// This ensures command keys include their parent folder as a prefix
+// (e.g. `coins_get`) to match the lookup in `interactionCreate.js`.
+loadCommands([]);
 
 // Load event handlers
 const eventsPath = path.join(__dirname, 'events');
