@@ -158,7 +158,9 @@ module.exports = {
         await threadMessage.react('👀');
         await threadMessage.react('✅');
 
-        // Save to database (curso in DB = nivel in Discord)
+        // Save to database
+        // Note: For nivel-wide activities, we store the nivel name in the curso field
+        // since activities apply to all cursos in that nivel (e.g., "Primero" applies to both 1E1 and 1E2)
         await supabaseService.createActivity(title, interaction.user.id, nivel, thread.id);
 
         // Log activity creation
