@@ -7,14 +7,14 @@ class OpenRouterService {
     this.apiKey = config.OPENROUTER_API_KEY;
     this.baseUrl = 'https://openrouter.ai/api/v1/chat/completions';
     // FREE MODEL - No cost at all!
-    this.freeModel = 'google/gemini-flash-1.5';
-    log.info('OPENROUTER', `Usando modelo GRATUITO: ${this.freeModel}`);
+    this.freeModel = 'google/gemma-3n-e4b-it:free';
+    log.info('OPENROUTER', `Usando modelo: ${this.freeModel}`);
   }
 
   // Summarize a single documentation resource
   async summarizeResource(resource) {
     try {
-      log.api('OpenRouter', `Generando resumen (Modelo GRATIS: ${this.freeModel})`);
+      log.api('OpenRouter', `Generando resumen (Modelo: ${this.freeModel})`);
       const response = await axios.post(
         this.baseUrl,
         {
