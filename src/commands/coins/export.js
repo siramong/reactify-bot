@@ -26,19 +26,19 @@ module.exports = {
       // Get all user data
       const allUsers = await supabaseService.getAllUsers();
 
-      // Export to n8n with retry logic
-      await n8nService.exportToN8n({
+      // Trigger n8n webhook and get the returned URL
+      const result = await n8nService.exportToN8n({
         timestamp: new Date().toISOString(),
         totalUsers: allUsers.length,
         users: allUsers
       });
 
-      const timestamp = new Date().toLocaleString('es-ES');
-      const response = replacePlaceholders(strings.SUCCESS.EXPORT_SUCCESS, {
-        timestamp: timestamp
-      });
+      // Extract URL from n8n response
+      const exportUrl = result?.url || result?.fileUrl || 'URL no disponible';
 
-      await interaction.editReply(response);
+      await interaction.editReply({
+        content: `✅ Datos exportados exitosamente\n📎 **URL:** ${exportUrl}`
+      });
     } catch (error) {
       console.error('Error in coins export command:', error);
       await interaction.editReply({

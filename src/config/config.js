@@ -18,6 +18,15 @@ module.exports = {
     '3E2': process.env.FORUM_3E2_ID,
   },
   
+  ANNOUNCEMENT_CHANNELS: {
+    '1E1': process.env.ANNOUNCEMENT_1E1_ID,
+    '1E2': process.env.ANNOUNCEMENT_1E2_ID,
+    '2E1': process.env.ANNOUNCEMENT_2E1_ID,
+    '2E2': process.env.ANNOUNCEMENT_2E2_ID,
+    '3E1': process.env.ANNOUNCEMENT_3E1_ID,
+    '3E2': process.env.ANNOUNCEMENT_3E2_ID,
+  },
+  
   BID_INCREMENT: 10, // Minimum bid increase
   COIN_REQUEST_COOLDOWN: 3600000, // 1 hour in ms
 };
