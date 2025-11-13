@@ -1,8 +1,9 @@
-const { SlashCommandSubcommandBuilder, EmbedBuilder } = require('discord.js');
+const { SlashCommandSubcommandBuilder, EmbedBuilder, MessageFlags } = require('discord.js');
 const { ensureUserExists } = require('../../utils/userManager');
 const supabaseService = require('../../services/supabase');
 const { formatCoins } = require('../../utils/formatting');
 const strings = require('../../config/strings');
+const log = require('../../utils/consoleLogger');
 
 module.exports = {
   data: new SlashCommandSubcommandBuilder()
@@ -11,7 +12,7 @@ module.exports = {
   
   async execute(interaction) {
     try {
-      await interaction.deferReply({ ephemeral: true });
+      await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
       // Ensure user exists
       const user = await ensureUserExists(interaction.user.id, interaction.user.username);
@@ -35,8 +36,8 @@ module.exports = {
             inline: true
           },
           {
-            name: strings.FIELDS.CURSO,
-            value: user.curso ? `**${user.curso}**` : '*No configurado*',
+            name: strings.FIELDS.NIVEL,
+            value: user.nivel ? `**${user.nivel}**` : '*No configurado*',
             inline: true
           }
         )
@@ -45,7 +46,7 @@ module.exports = {
 
       await interaction.editReply({ embeds: [embed] });
     } catch (error) {
-      console.error('Error in coins get command:', error);
+      log.error('COMANDO', 'Error en coins get', error);
       await interaction.editReply({
         content: strings.ERRORS.DATABASE_ERROR
       });

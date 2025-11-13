@@ -1,9 +1,11 @@
-const { SlashCommandSubcommandBuilder } = require('discord.js');
+const { SlashCommandSubcommandBuilder, MessageFlags } = require('discord.js');
 const { ensureUserExists } = require('../../utils/userManager');
 const { checkTeacherRole } = require('../../utils/permissions');
 const supabaseService = require('../../services/supabase');
 const { replacePlaceholders } = require('../../utils/formatting');
 const strings = require('../../config/strings');
+const { getLogger } = require('../../utils/logger');
+const log = require('../../utils/consoleLogger');
 
 module.exports = {
   data: new SlashCommandSubcommandBuilder()
@@ -30,7 +32,7 @@ module.exports = {
       if (!checkTeacherRole(interaction.member)) {
         await interaction.reply({
           content: strings.ERRORS.NO_PERMISSION,
-          ephemeral: true
+          flags: MessageFlags.Ephemeral
         });
         return;
       }
@@ -60,6 +62,20 @@ module.exports = {
       // Remove coins
       await supabaseService.removeCoins(targetUser.id, amount);
 
+      // Log transaction
+      const logger = getLogger();
+      await logger.logTransaction({
+        type: 'COINS_REMOVED',
+        userId: targetUser.id,
+        username: targetUser.username,
+        amount: amount,
+        reason: reason,
+        performedBy: interaction.user.id,
+        nivel: user?.nivel || 'No configurado'
+      });
+
+      log.transaction('REMOVER', amount, targetUser.tag);
+
       // Send response
       const response = replacePlaceholders(strings.SUCCESS.COINS_REMOVED, {
         amount: amount,
@@ -76,10 +92,10 @@ module.exports = {
         });
         await targetUser.send(dmMessage);
       } catch (error) {
-        console.log('Could not send DM to user:', error);
+        log.warn('DM', 'No se pudo enviar DM al usuario');
       }
     } catch (error) {
-      console.error('Error in coins remove command:', error);
+      log.error('COMANDO', 'Error en coins remove', error);
       await interaction.editReply({
         content: strings.ERRORS.DATABASE_ERROR
       });
