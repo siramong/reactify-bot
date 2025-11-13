@@ -1,0 +1,24 @@
+{
+  "name": "reactify-bot",
+  "version": "1.0.0",
+  "description": "Discord bot for educational gamification with virtual currency system",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node src/index.js"
+  },
+  "keywords": [
+    "discord",
+    "bot",
+    "education",
+    "gamification"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "discord.js": "^14.14.1",
+    "@supabase/supabase-js": "^2.39.0",
+    "axios": "^1.6.0",
+    "dotenv": "^16.3.1"
+  }
+}
