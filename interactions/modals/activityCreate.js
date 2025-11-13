@@ -158,7 +158,7 @@ module.exports = {
         await threadMessage.react('👀');
         await threadMessage.react('✅');
 
-        // Save to database
+        // Save to database (curso in DB = nivel in Discord)
         await supabaseService.createActivity(title, interaction.user.id, nivel, thread.id);
 
         // Log activity creation

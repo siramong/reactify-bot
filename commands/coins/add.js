@@ -49,7 +49,7 @@ module.exports = {
       // Add coins
       await supabaseService.addCoins(targetUser.id, amount);
 
-      // Get user data for nivel
+      // Get user data for curso (displayed as nivel)
       const userData = await supabaseService.getUser(targetUser.id);
 
       // Log transaction
@@ -61,7 +61,7 @@ module.exports = {
         amount: amount,
         reason: reason,
         performedBy: interaction.user.id,
-        nivel: userData?.nivel || 'No configurado'
+        nivel: userData?.curso || 'No configurado'
       });
 
       log.transaction('AÑADIR', amount, targetUser.tag);

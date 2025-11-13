@@ -71,7 +71,7 @@ module.exports = {
         amount: amount,
         reason: reason,
         performedBy: interaction.user.id,
-        nivel: user?.nivel || 'No configurado'
+        nivel: user?.curso || 'No configurado'
       });
 
       log.transaction('REMOVER', amount, targetUser.tag);

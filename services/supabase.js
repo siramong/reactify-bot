@@ -29,7 +29,7 @@ class SupabaseService {
   }
 
   // Create new user with defaults
-  async createUser(userId, username, nivel = null) {
+  async createUser(userId, username, curso = null) {
     try {
       const { data, error } = await this.client
         .from('coins')
@@ -38,7 +38,7 @@ class SupabaseService {
             userId: userId,
             username: username,
             amount: 0,
-            nivel: nivel
+            curso: curso
           }
         ])
         .select()
@@ -205,27 +205,27 @@ class SupabaseService {
     }
   }
 
-  // Update user nivel
-  async updateUserNivel(userId, nivel) {
+  // Update user curso
+  async updateUserCurso(userId, curso) {
     try {
       const { data, error } = await this.client
         .from('coins')
-        .update({ nivel })
+        .update({ curso })
         .eq('userId', userId)
         .select()
         .single();
 
       if (error) throw error;
-      log.database('ACTUALIZAR NIVEL', `${userId} -> ${nivel}`);
+      log.database('ACTUALIZAR CURSO', `${userId} -> ${curso}`);
       return data;
     } catch (error) {
-      log.error('BASE DE DATOS', 'Error actualizando nivel de usuario', error);
+      log.error('BASE DE DATOS', 'Error actualizando curso de usuario', error);
       throw error;
     }
   }
 
   // Create activity
-  async createActivity(name, teacher, nivel, threadId) {
+  async createActivity(name, teacher, curso, threadId) {
     try {
       const { data, error } = await this.client
         .from('activities')
@@ -233,7 +233,7 @@ class SupabaseService {
           {
             name,
             teacher,
-            nivel,
+            curso,
             threadId
           }
         ])
@@ -241,7 +241,7 @@ class SupabaseService {
         .single();
 
       if (error) throw error;
-      log.database('CREAR ACTIVIDAD', `${name} - Nivel: ${nivel}`);
+      log.database('CREAR ACTIVIDAD', `${name} - Curso: ${curso}`);
       return data;
     } catch (error) {
       log.error('BASE DE DATOS', 'Error creando actividad', error);
@@ -249,13 +249,13 @@ class SupabaseService {
     }
   }
 
-  // Get activities by nivel
-  async getActivitiesByNivel(nivel) {
+  // Get activities by curso
+  async getActivitiesByCurso(curso) {
     try {
       const { data, error } = await this.client
         .from('activities')
         .select('*')
-        .eq('nivel', nivel);
+        .eq('curso', curso);
 
       if (error) throw error;
       return data || [];

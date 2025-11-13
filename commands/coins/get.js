@@ -37,7 +37,7 @@ module.exports = {
           },
           {
             name: strings.FIELDS.NIVEL,
-            value: user.nivel ? `**${user.nivel}**` : '*No configurado*',
+            value: user.curso ? `**${user.curso}**` : '*No configurado*',
             inline: true
           }
         )
