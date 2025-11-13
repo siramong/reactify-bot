@@ -1,9 +1,11 @@
-const { SlashCommandSubcommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder } = require('discord.js');
+const { SlashCommandSubcommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder, MessageFlags } = require('discord.js');
 const { checkTeacherRole } = require('../../utils/permissions');
 const { formatDuration, replacePlaceholders } = require('../../utils/formatting');
-const { CURSOS } = require('../../config/enums');
+const { NIVELES } = require('../../config/enums');
 const config = require('../../config/config');
 const strings = require('../../config/strings');
+const { getLogger } = require('../../utils/logger');
+const log = require('../../utils/consoleLogger');
 
 // Store active auctions
 const activeAuctions = new Map();
@@ -34,7 +36,7 @@ module.exports = {
       if (!checkTeacherRole(interaction.member)) {
         await interaction.reply({
           content: strings.ERRORS.NO_PERMISSION,
-          ephemeral: true
+          flags: MessageFlags.Ephemeral
         });
         return;
       }
@@ -43,27 +45,27 @@ module.exports = {
       const startingBid = interaction.options.getInteger('starting_bid');
       const duration = interaction.options.getInteger('duration');
 
-      // Show curso selection menu
+      // Show nivel selection menu
       const selectMenu = new StringSelectMenuBuilder()
-        .setCustomId(`auctioncurso_${interaction.user.id}_${Date.now()}`)
-        .setPlaceholder('Selecciona el curso para la subasta')
+        .setCustomId(`auctionnivel_${interaction.user.id}_${Date.now()}`)
+        .setPlaceholder('Selecciona el nivel para la subasta')
         .addOptions(
-          CURSOS.map(curso => ({
-            label: curso,
-            value: curso
+          NIVELES.map(nivel => ({
+            label: nivel,
+            value: nivel
           }))
         );
 
       const row = new ActionRowBuilder().addComponents(selectMenu);
 
       await interaction.reply({
-        content: '🔨 Selecciona el curso (nivel) para esta subasta:',
+        content: '`🔨` Selecciona el nivel para esta subasta:',
         components: [row],
-        ephemeral: true
+        flags: MessageFlags.Ephemeral
       });
 
       // Wait for selection
-      const filter = i => i.customId.startsWith('auctioncurso_') && i.user.id === interaction.user.id;
+      const filter = i => i.customId.startsWith('auctionnivel_') && i.user.id === interaction.user.id;
       
       try {
         const selection = await interaction.channel.awaitMessageComponent({
@@ -73,13 +75,13 @@ module.exports = {
 
         await selection.deferUpdate();
 
-        const curso = selection.values[0];
+        const nivel = selection.values[0];
 
-        // Get announcement channel for curso
-        const announcementChannelId = config.ANNOUNCEMENT_CHANNELS[curso];
+        // Get announcement channel for nivel
+        const announcementChannelId = config.ANNOUNCEMENT_CHANNELS[nivel];
         if (!announcementChannelId) {
           await interaction.editReply({
-            content: `❌ No se encontró el canal de anuncios para ${curso}`,
+            content: `\`❌\` No se encontró el canal de anuncios para ${nivel}`,
             components: []
           });
           return;
@@ -88,7 +90,7 @@ module.exports = {
         const announcementChannel = await interaction.client.channels.fetch(announcementChannelId);
 
         await interaction.editReply({
-          content: '⏳ Creando subasta...',
+          content: '`⏳` Creando subasta...',
           components: []
         });
 
@@ -106,7 +108,7 @@ module.exports = {
           duration: duration,
           messageId: null,
           channelId: announcementChannel.id,
-          curso: curso,
+          nivel: nivel,
           ended: false
         };
 
@@ -115,7 +117,7 @@ module.exports = {
         // Create embed
         const embed = new EmbedBuilder()
           .setTitle(replacePlaceholders(strings.EMBEDS.AUCTION_TITLE, { item: itemName }))
-          .setDescription(`**Curso:** ${curso}`)
+          .setDescription(`**Nivel:** ${nivel}`)
           .setColor(0xe74c3c) // Red
           .addFields(
             {
@@ -156,9 +158,22 @@ module.exports = {
 
         auctionData.messageId = message.id;
 
+        // Log auction creation
+        const logger = getLogger();
+        await logger.logTransaction({
+          type: 'AUCTION_CREATED',
+          itemName: itemName,
+          startingBid: startingBid,
+          nivel: nivel,
+          duration: duration,
+          performedBy: interaction.user.id
+        });
+
+        log.info('SUBASTA', `Creada: ${itemName} - Nivel: ${nivel} - ${duration}min`);
+
         // Notify teacher
         await interaction.editReply({
-          content: `✅ Subasta creada en el canal de anuncios de **${curso}**\n🔗 [Ver subasta](${message.url})`
+          content: `\`✅\` Subasta creada en el canal de anuncios de **${nivel}**\n🔗 [Ver subasta](${message.url})`
         });
 
         // Start countdown timer
@@ -187,7 +202,7 @@ module.exports = {
 
               await message.edit({ embeds: [updatedEmbed] });
             } catch (error) {
-              console.error('Error updating auction timer:', error);
+              log.error('SUBASTA', 'Error actualizando temporizador', error);
             }
           }
         }, 60000); // Update every minute
@@ -195,7 +210,7 @@ module.exports = {
       } catch (error) {
         if (error.message?.includes('time')) {
           await interaction.editReply({
-            content: '❌ Tiempo de espera agotado. Por favor, intenta de nuevo.',
+            content: '`❌` Tiempo de espera agotado. Por favor, intenta de nuevo.',
             components: []
           });
         } else {
@@ -203,7 +218,7 @@ module.exports = {
         }
       }
     } catch (error) {
-      console.error('Error in coins bid command:', error);
+      log.error('COMANDO', 'Error en coins bid', error);
       const replyMethod = interaction.replied || interaction.deferred ? 'editReply' : 'reply';
       await interaction[replyMethod]({
         content: strings.ERRORS.DATABASE_ERROR
@@ -225,6 +240,7 @@ async function endAuction(auctionId, client) {
 
     if (auction.topBidder) {
       const supabaseService = require('../../services/supabase');
+      const log = require('../../utils/consoleLogger');
       
       // Deduct coins from winner
       await supabaseService.removeCoins(auction.topBidder, auction.currentBid);
@@ -243,16 +259,27 @@ async function endAuction(auctionId, client) {
       try {
         if (channel.type === 5) { // Announcement channel
           await message.crosspost();
-          console.log('Auction message published (crossposted)');
+          log.info('SUBASTA', 'Mensaje publicado (crossposted)');
         }
       } catch (error) {
-        console.log('Could not crosspost auction message:', error);
+        log.warn('SUBASTA', 'No se pudo hacer crosspost del mensaje');
       }
 
       // Announce winner
       await channel.send(
-        `🎉 ¡Subasta finalizada!\n**Ganador:** <@${auction.topBidder}>\n**Precio final:** ${auction.currentBid} monedas`
+        `\`🎉\` ¡Subasta finalizada!\n**Ganador:** <@${auction.topBidder}>\n**Precio final:** ${auction.currentBid} monedas`
       );
+
+      // Log auction end
+      const logger = getLogger();
+      await logger.logTransaction({
+        type: 'AUCTION_ENDED',
+        itemName: auction.item,
+        winnerId: auction.topBidder,
+        finalPrice: auction.currentBid
+      });
+
+      log.transaction('SUBASTA FINALIZADA', auction.currentBid, auction.topBidderUsername);
 
       // DM winner
       try {
@@ -263,18 +290,20 @@ async function endAuction(auctionId, client) {
         });
         await winner.send(dmMessage);
       } catch (error) {
-        console.log('Could not send DM to winner:', error);
+        log.warn('DM', 'No se pudo enviar DM al ganador');
       }
     } else {
       await message.edit({
-        content: '⚠️ Subasta finalizada sin postores.',
+        content: '`⚠️` Subasta finalizada sin postores.',
         components: []
       });
+
+      log.info('SUBASTA', `Finalizada sin postores: ${auction.item}`);
     }
 
     activeAuctions.delete(auctionId);
   } catch (error) {
-    console.error('Error ending auction:', error);
+    log.error('SUBASTA', 'Error finalizando subasta', error);
   }
 }
 

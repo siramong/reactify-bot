@@ -2,8 +2,14 @@ const { Client, GatewayIntentBits, Collection } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
 const config = require('./config/config');
+const { initLogger } = require('./utils/logger');
+const log = require('./utils/consoleLogger');
+
+// Print startup banner
+log.banner('REACTIFY BOT');
 
 // Create Discord client
+log.startup('Inicializando cliente de Discord...');
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
@@ -36,21 +42,21 @@ function loadCommands(dir, commandPath = []) {
       if (command.data && command.execute) {
         const commandName = [...commandPath, path.parse(file).name].join('_');
         client.commands.set(commandName, command);
-        console.log(`Loaded command: ${commandName}`);
+        log.success('COMANDO', `Cargado: /${commandName.replace('_', ' ')}`);
       }
     }
   }
 }
 
 // Load all commands recursively from the `commands` folder
-// This ensures command keys include their parent folder as a prefix
-// (e.g. `coins_get`) to match the lookup in `interactionCreate.js`.
+log.info('SISTEMA', 'Cargando comandos...');
 loadCommands([]);
 
 // Load event handlers
 const eventsPath = path.join(__dirname, 'events');
 const eventFiles = fs.readdirSync(eventsPath).filter(file => file.endsWith('.js'));
 
+log.info('SISTEMA', 'Cargando manejadores de eventos...');
 for (const file of eventFiles) {
   const filePath = path.join(eventsPath, file);
   const event = require(filePath);
@@ -60,8 +66,9 @@ for (const file of eventFiles) {
   } else {
     client.on(event.name, (...args) => event.execute(...args));
   }
-  console.log(`Loaded event: ${event.name}`);
+  log.success('EVENTO', `Registrado: ${event.name}`);
 }
 
 // Login to Discord
+log.startup('Conectando con Discord...');
 client.login(config.DISCORD_TOKEN);

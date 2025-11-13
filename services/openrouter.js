@@ -1,19 +1,25 @@
 const axios = require('axios');
 const config = require('../config/config');
+const log = require('../utils/consoleLogger');
 
 class OpenRouterService {
   constructor() {
     this.apiKey = config.OPENROUTER_API_KEY;
     this.baseUrl = 'https://openrouter.ai/api/v1/chat/completions';
+    // FREE MODEL - No cost at all!
+    this.freeModel = 'google/gemini-flash-1.5';
+    log.info('OPENROUTER', `Usando modelo GRATUITO: ${this.freeModel}`);
   }
 
   // Summarize a single documentation resource
   async summarizeResource(resource) {
     try {
+      log.api('OpenRouter', `Generando resumen (Modelo GRATIS: ${this.freeModel})`);
       const response = await axios.post(
         this.baseUrl,
         {
-          model: 'meta-llama/llama-3.1-8b-instruct',
+          // USING FREE MODEL - google/gemini-flash-1.5 is completely FREE on OpenRouter
+          model: this.freeModel,
           messages: [
             {
               role: 'system',
@@ -28,14 +34,17 @@ class OpenRouterService {
         {
           headers: {
             'Authorization': `Bearer ${this.apiKey}`,
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'HTTP-Referer': 'https://github.com/siramong/reactify-bot',
+            'X-Title': 'Reactify Bot'
           }
         }
       );
 
+      log.api('OpenRouter', 'Resumen generado exitosamente', 'success');
       return response.data.choices[0].message.content;
     } catch (error) {
-      console.error('Error calling OpenRouter API:', error);
+      log.error('OPENROUTER', 'Error al generar resumen', error);
       throw error;
     }
   }
@@ -57,14 +66,14 @@ class OpenRouterService {
           const summary = await this.summarizeResource(doc);
           summaries.push(`• ${doc}\n  ${summary}`);
         } catch (error) {
-          console.error(`Error summarizing ${doc}:`, error);
+          log.error('OPENROUTER', `Error resumiendo: ${doc}`, error);
           summaries.push(`• ${doc}\n  (No se pudo generar resumen)`);
         }
       }
 
       return summaries.join('\n\n');
     } catch (error) {
-      console.error('Error summarizing documentation:', error);
+      log.error('OPENROUTER', 'Error al resumir documentación', error);
       throw error;
     }
   }
