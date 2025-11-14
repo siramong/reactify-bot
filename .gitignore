@@ -26,3 +26,7 @@ Thumbs.db
 # Temporary files
 tmp/
 temp/
+
+# TypeScript
+dist/
+*.tsbuildinfo
