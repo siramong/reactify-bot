@@ -21,7 +21,13 @@ module.exports = {
       const title = interaction.fields.getTextInputValue('title');
       const description = interaction.fields.getTextInputValue('description');
       const documentation = interaction.fields.getTextInputValue('documentation');
-      const attachment = interaction.fields.getTextInputValue('attachment') || null;
+      const fieldsAttachment = (interaction.fields.getTextInputValue && (() => {
+        try { return interaction.fields.getTextInputValue('attachment'); } catch (e) { return null; }
+      })()) || null;
+
+      const pendingAttachments = require('../../utils/pendingAttachments');
+      const storedAttachment = pendingAttachments.getAndDelete(interaction.user.id);
+      const attachment = fieldsAttachment || storedAttachment || null;
       const rewardStr = interaction.fields.getTextInputValue('reward') || '0';
 
       // Parse reward

@@ -1,4 +1,4 @@
-const { Client, GatewayIntentBits, Collection } = require('discord.js');
+const { Client, GatewayIntentBits, Collection, REST, Routes, SlashCommandBuilder } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
 const config = require('./config/config');
@@ -52,6 +52,69 @@ function loadCommands(dir, commandPath = []) {
 log.info('SISTEMA', 'Cargando comandos...');
 loadCommands([]);
 
+// Build commands payload for registration (mirrors register-commands.js)
+function buildCommandsPayload() {
+  const commands = [];
+  const commandsDir = path.join(__dirname, 'commands');
+
+  if (!fs.existsSync(commandsDir)) return commands;
+
+  const entries = fs.readdirSync(commandsDir, { withFileTypes: true });
+
+  for (const entry of entries) {
+    const entryPath = path.join(commandsDir, entry.name);
+
+    if (entry.isDirectory()) {
+      const files = fs.readdirSync(entryPath).filter(f => f.endsWith('.js'));
+      const subcommandOptions = [];
+      let pushedTopLevel = false;
+
+      for (const file of files) {
+        const mod = require(path.join(entryPath, file));
+        if (!mod || !mod.data) continue;
+
+        const ctor = mod.data.constructor && mod.data.constructor.name;
+
+        if (ctor === 'SlashCommandBuilder') {
+          commands.push(mod.data.toJSON());
+          pushedTopLevel = true;
+        } else if (ctor === 'SlashCommandSubcommandBuilder') {
+          subcommandOptions.push(mod.data.toJSON());
+        } else {
+          try {
+            const json = mod.data.toJSON();
+            if (json.type === 1) subcommandOptions.push(json);
+            else commands.push(json);
+          } catch (err) {
+            // ignore unknown exports
+          }
+        }
+      }
+
+      if (subcommandOptions.length > 0 && !pushedTopLevel) {
+        const parent = new SlashCommandBuilder()
+          .setName(entry.name)
+          .setDescription(`Comandos de ${entry.name}`);
+
+        const parentJson = parent.toJSON();
+        parentJson.options = subcommandOptions;
+        commands.push(parentJson);
+      }
+    } else if (entry.isFile() && entry.name.endsWith('.js')) {
+      const mod = require(entryPath);
+      if (mod && mod.data) {
+        try {
+          commands.push(mod.data.toJSON());
+        } catch (err) {
+          // ignore
+        }
+      }
+    }
+  }
+
+  return commands;
+}
+
 // Load event handlers
 const eventsPath = path.join(__dirname, 'events');
 const eventFiles = fs.readdirSync(eventsPath).filter(file => file.endsWith('.js'));
@@ -69,6 +132,37 @@ for (const file of eventFiles) {
   log.success('EVENTO', `Registrado: ${event.name}`);
 }
 
-// Login to Discord
+// Login to Discord (and register commands automatically)
 log.startup('Conectando con Discord...');
-client.login(config.DISCORD_TOKEN);
+
+// Register application commands automatically unless SKIP_REGISTRATION=1
+(async () => {
+  try {
+    const skip = process.env.SKIP_REGISTRATION === '1';
+    const applicationId = process.env.APPLICATION_ID;
+
+    if (skip) {
+      log.info('SISTEMA', 'SKIP_REGISTRATION=1 -> construcción de comandos (no registro)');
+      const built = buildCommandsPayload();
+      log.info('SISTEMA', JSON.stringify(built, null, 2));
+    } else {
+      if (!applicationId) {
+        log.error('SISTEMA', '❌ APPLICATION_ID no está configurado en .env; omitiendo registro de comandos');
+      } else {
+        log.startup('SISTEMA', 'Registrando comandos slash...');
+        const rest = new REST({ version: '10' }).setToken(config.DISCORD_TOKEN || process.env.DISCORD_TOKEN);
+        const commandsPayload = buildCommandsPayload();
+        await rest.put(
+          Routes.applicationCommands(applicationId),
+          { body: commandsPayload }
+        );
+        log.success('SISTEMA', '✅ Comandos registrados exitosamente');
+      }
+    }
+  } catch (error) {
+    log.error('SISTEMA', `❌ Error al registrar comandos: ${error.message || error}`);
+  } finally {
+    // Start the client regardless of registration outcome
+    client.login(config.DISCORD_TOKEN);
+  }
+})();

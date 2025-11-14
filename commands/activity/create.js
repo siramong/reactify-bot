@@ -1,11 +1,18 @@
 const { SlashCommandBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder } = require('discord.js');
 const { checkTeacherRole } = require('../../utils/permissions');
+const pendingAttachments = require('../../utils/pendingAttachments');
 const strings = require('../../config/strings');
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('activity')
-    .setDescription('Comandos de actividades (solo docentes)'),
+    .setDescription('Comandos de actividades (solo docentes)')
+    .addAttachmentOption(option =>
+      option
+        .setName('attachment')
+        .setDescription('Adjunto de referencia (archivo) - Opcional')
+        .setRequired(false)
+    ),
   
   async execute(interaction) {
     try {
@@ -16,6 +23,13 @@ module.exports = {
           ephemeral: true
         });
         return;
+      }
+
+      // If the user provided an attachment option with the command, store it
+      // so the modal submit handler can access it later.
+      const attachmentOption = interaction.options.getAttachment('attachment');
+      if (attachmentOption) {
+        pendingAttachments.set(interaction.user.id, attachmentOption.url);
       }
 
       // Show modal to create activity
@@ -44,13 +58,6 @@ module.exports = {
         .setRequired(true)
         .setMaxLength(500);
 
-      const attachmentInput = new TextInputBuilder()
-        .setCustomId('attachment')
-        .setLabel('Adjunto de referencia (URL) - Opcional')
-        .setStyle(TextInputStyle.Short)
-        .setRequired(false)
-        .setMaxLength(500);
-
       const rewardInput = new TextInputBuilder()
         .setCustomId('reward')
         .setLabel('Recompensa en monedas - Opcional')
@@ -61,10 +68,9 @@ module.exports = {
       const row1 = new ActionRowBuilder().addComponents(titleInput);
       const row2 = new ActionRowBuilder().addComponents(descriptionInput);
       const row3 = new ActionRowBuilder().addComponents(docsInput);
-      const row4 = new ActionRowBuilder().addComponents(attachmentInput);
-      const row5 = new ActionRowBuilder().addComponents(rewardInput);
+      const row4 = new ActionRowBuilder().addComponents(rewardInput);
 
-      modal.addComponents(row1, row2, row3, row4, row5);
+      modal.addComponents(row1, row2, row3, row4);
 
       await interaction.showModal(modal);
     } catch (error) {
