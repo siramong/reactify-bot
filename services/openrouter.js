@@ -41,6 +41,12 @@ class OpenRouterService {
         }
       );
 
+      // Check if response has the expected structure
+      if (!response.data || !response.data.choices || !response.data.choices[0] || !response.data.choices[0].message) {
+        log.error('OPENROUTER', 'Respuesta inesperada de OpenRouter', response.data);
+        throw new Error('Respuesta inesperada de OpenRouter');
+      }
+
       log.api('OpenRouter', 'Resumen generado exitosamente', 'success');
       return response.data.choices[0].message.content;
     } catch (error) {

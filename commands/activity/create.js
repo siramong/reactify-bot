@@ -44,12 +44,12 @@ module.exports = {
         .setRequired(true)
         .setMaxLength(500);
 
-      const deadlineInput = new TextInputBuilder()
-        .setCustomId('deadline')
-        .setLabel('Fecha límite (AAAA-MM-DD) - Opcional')
+      const attachmentInput = new TextInputBuilder()
+        .setCustomId('attachment')
+        .setLabel('Adjunto de referencia (URL) - Opcional')
         .setStyle(TextInputStyle.Short)
         .setRequired(false)
-        .setMaxLength(10);
+        .setMaxLength(500);
 
       const rewardInput = new TextInputBuilder()
         .setCustomId('reward')
@@ -61,7 +61,7 @@ module.exports = {
       const row1 = new ActionRowBuilder().addComponents(titleInput);
       const row2 = new ActionRowBuilder().addComponents(descriptionInput);
       const row3 = new ActionRowBuilder().addComponents(docsInput);
-      const row4 = new ActionRowBuilder().addComponents(deadlineInput);
+      const row4 = new ActionRowBuilder().addComponents(attachmentInput);
       const row5 = new ActionRowBuilder().addComponents(rewardInput);
 
       modal.addComponents(row1, row2, row3, row4, row5);

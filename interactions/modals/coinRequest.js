@@ -14,6 +14,7 @@ module.exports = {
       const reason = interaction.fields.getTextInputValue('reason');
       const amountStr = interaction.fields.getTextInputValue('amount');
       const description = interaction.fields.getTextInputValue('description') || strings.PLACEHOLDERS.NONE;
+      const attachment = interaction.fields.getTextInputValue('attachment') || strings.PLACEHOLDERS.NONE;
 
       // Parse amount
       const amount = parseInt(amountStr);
@@ -56,6 +57,11 @@ module.exports = {
           {
             name: strings.FIELDS.DESCRIPTION,
             value: description,
+            inline: false
+          },
+          {
+            name: strings.FIELDS.PROOF,
+            value: attachment,
             inline: false
           }
         )
