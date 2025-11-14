@@ -43,11 +43,20 @@ module.exports = {
         .setRequired(false)
         .setMaxLength(500);
 
+      // Attachment field
+      const attachmentInput = new TextInputBuilder()
+        .setCustomId('attachment')
+        .setLabel('Prueba (URL de captura/imagen) - Opcional')
+        .setStyle(TextInputStyle.Short)
+        .setRequired(false)
+        .setMaxLength(500);
+
       const firstRow = new ActionRowBuilder().addComponents(reasonInput);
       const secondRow = new ActionRowBuilder().addComponents(amountInput);
       const thirdRow = new ActionRowBuilder().addComponents(descriptionInput);
+      const fourthRow = new ActionRowBuilder().addComponents(attachmentInput);
 
-      modal.addComponents(firstRow, secondRow, thirdRow);
+      modal.addComponents(firstRow, secondRow, thirdRow, fourthRow);
 
       await interaction.showModal(modal);
     } catch (error) {
