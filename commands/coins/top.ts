@@ -1,4 +1,4 @@
-import { SlashCommandSubcommandBuilder, EmbedBuilder, CommandInteraction } from 'discord.js';
+import { SlashCommandSubcommandBuilder, EmbedBuilder, ChatInputCommandInteraction } from 'discord.js';
 import supabaseService from '../../services/supabase';
 import { formatTopUsersList, formatNumber } from '../../utils/formatting';
 import { EMBEDS, ERRORS } from '../../config/strings';
@@ -8,7 +8,7 @@ export default {
     .setName('top')
     .setDescription('Ver el ranking de monedas'),
   
-  async execute(interaction: CommandInteraction) {
+  async execute(interaction: ChatInputCommandInteraction) {
     try {
       await interaction.deferReply();
 

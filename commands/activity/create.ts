@@ -1,4 +1,4 @@
-import { SlashCommandBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder, CommandInteraction } from 'discord.js';
+import { SlashCommandBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder, ChatInputCommandInteraction } from 'discord.js';
 import { checkTeacherRole } from '../../utils/permissions';
 import * as pendingAttachments from '../../utils/pendingAttachments';
 import { MODALS, ERRORS } from '../../config/strings';
@@ -14,7 +14,7 @@ export default {
         .setRequired(false)
     ),
   
-  async execute(interaction: CommandInteraction) {
+  async execute(interaction: ChatInputCommandInteraction) {
     try {
       // Check teacher permission
       if (!checkTeacherRole(interaction.member as any)) {

@@ -1,4 +1,4 @@
-import { SlashCommandSubcommandBuilder, EmbedBuilder, MessageFlags, CommandInteraction } from 'discord.js';
+import { SlashCommandSubcommandBuilder, EmbedBuilder, MessageFlags, ChatInputCommandInteraction } from 'discord.js';
 import { ensureUserExists } from '../../utils/userManager';
 import supabaseService from '../../services/supabase';
 import { formatCoins } from '../../utils/formatting';
@@ -10,7 +10,7 @@ export default {
     .setName('get')
     .setDescription('Ver tu balance de monedas'),
   
-  async execute(interaction: CommandInteraction) {
+  async execute(interaction: ChatInputCommandInteraction) {
     try {
       await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 

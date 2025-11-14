@@ -1,4 +1,4 @@
-import { SlashCommandSubcommandBuilder, MessageFlags, CommandInteraction } from 'discord.js';
+import { SlashCommandSubcommandBuilder, MessageFlags, ChatInputCommandInteraction } from 'discord.js';
 import { ensureUserExists } from '../../utils/userManager';
 import { checkTeacherRole } from '../../utils/permissions';
 import supabaseService from '../../services/supabase';
@@ -26,7 +26,7 @@ export default {
         .setRequired(false)
         .setMaxLength(200)),
   
-  async execute(interaction: CommandInteraction) {
+  async execute(interaction: ChatInputCommandInteraction) {
     try {
       // Check teacher permission
       if (!checkTeacherRole(interaction.member as any)) {

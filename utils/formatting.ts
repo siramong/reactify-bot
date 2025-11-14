@@ -1,7 +1,7 @@
-interface User {
+interface TopUser {
   amount: number;
   username: string;
-  curso?: string;
+  curso?: string | null;
 }
 
 // Format number with thousands separator
@@ -37,7 +37,7 @@ export function getRankEmoji(rank: number): string {
 }
 
 // Format top users list
-export function formatTopUsersList(users: User[]): string {
+export function formatTopUsersList(users: TopUser[]): string {
   return users.map((user, index) => {
     const rank = index + 1;
     const emoji = getRankEmoji(rank);

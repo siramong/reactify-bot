@@ -1,4 +1,4 @@
-import { SlashCommandSubcommandBuilder, CommandInteraction } from 'discord.js';
+import { SlashCommandSubcommandBuilder, ChatInputCommandInteraction } from 'discord.js';
 import { checkTeacherRole } from '../../utils/permissions';
 import supabaseService from '../../services/supabase';
 import n8nService from '../../services/n8n';
@@ -9,7 +9,7 @@ export default {
     .setName('export')
     .setDescription('Exportar datos a n8n (solo docentes)'),
   
-  async execute(interaction: CommandInteraction) {
+  async execute(interaction: ChatInputCommandInteraction) {
     try {
       // Check teacher permission
       if (!checkTeacherRole(interaction.member as any)) {

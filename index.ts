@@ -160,7 +160,7 @@ consoleLogger.startup('Conectando con Discord...');
       if (!applicationId) {
         consoleLogger.error('SISTEMA', '❌ APPLICATION_ID no está configurado en .env; omitiendo registro de comandos');
       } else {
-        consoleLogger.startup('SISTEMA', 'Registrando comandos slash...');
+        consoleLogger.info('SISTEMA', 'Registrando comandos slash...');
         const rest = new REST({ version: '10' }).setToken(config.DISCORD_TOKEN || process.env.DISCORD_TOKEN!);
         const commandsPayload = buildCommandsPayload();
         await rest.put(

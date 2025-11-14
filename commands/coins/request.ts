@@ -1,4 +1,4 @@
-import { SlashCommandSubcommandBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder, CommandInteraction } from 'discord.js';
+import { SlashCommandSubcommandBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder, ChatInputCommandInteraction } from 'discord.js';
 import { ensureUserExists } from '../../utils/userManager';
 import * as pendingAttachments from '../../utils/pendingAttachments';
 import { MODALS, ERRORS } from '../../config/strings';
@@ -14,7 +14,7 @@ export default {
         .setRequired(false)
     ),
   
-  async execute(interaction: CommandInteraction) {
+  async execute(interaction: ChatInputCommandInteraction) {
     try {
       // Ensure user exists
       await ensureUserExists(interaction.user.id, interaction.user.username);

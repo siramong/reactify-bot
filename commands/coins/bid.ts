@@ -1,4 +1,4 @@
-import { SlashCommandSubcommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder, MessageFlags, CommandInteraction, Message, StringSelectMenuInteraction } from 'discord.js';
+import { SlashCommandSubcommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder, MessageFlags, ChatInputCommandInteraction, Message, StringSelectMenuInteraction } from 'discord.js';
 import { checkTeacherRole } from '../../utils/permissions';
 import { formatDuration, replacePlaceholders } from '../../utils/formatting';
 import { NIVELES, Nivel } from '../../config/enums';
@@ -45,7 +45,7 @@ export default {
         .setMinValue(1)
         .setMaxValue(1440)),
   
-  async execute(interaction: CommandInteraction) {
+  async execute(interaction: ChatInputCommandInteraction) {
     try {
       // Check teacher permission
       if (!checkTeacherRole(interaction.member as any)) {

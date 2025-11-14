@@ -1,4 +1,4 @@
-import { SlashCommandSubcommandBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder, ButtonBuilder, ButtonStyle, CommandInteraction } from 'discord.js';
+import { SlashCommandSubcommandBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder, ButtonBuilder, ButtonStyle, ChatInputCommandInteraction } from 'discord.js';
 import { checkTeacherRole } from '../../utils/permissions';
 import { BUTTONS, MODALS, ERRORS } from '../../config/strings';
 
@@ -11,7 +11,7 @@ export default {
         .setDescription('Usuario específico (opcional)')
         .setRequired(false)),
   
-  async execute(interaction: CommandInteraction) {
+  async execute(interaction: ChatInputCommandInteraction) {
     try {
       // Check teacher permission
       if (!checkTeacherRole(interaction.member as any)) {
