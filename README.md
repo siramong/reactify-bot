@@ -2,6 +2,8 @@
 
 Bot de Discord para gamificación educativa con sistema de monedas virtuales.
 
+**Nota**: Este proyecto está completamente escrito en **TypeScript** para mejor seguridad de tipos y mantenibilidad.
+
 ## 📋 Características
 
 - **Sistema de Monedas**: Los estudiantes pueden ganar y gastar monedas virtuales
@@ -16,6 +18,8 @@ Bot de Discord para gamificación educativa con sistema de monedas virtuales.
 ### Requisitos Previos
 
 - Node.js 16.x o superior
+- npm o yarn
+- TypeScript (se instala automáticamente con las dependencias)
 - Cuenta de Discord con permisos de desarrollador
 - Cuenta de Supabase
 - API Key de OpenRouter
@@ -206,10 +210,26 @@ Ejecuta el script:
 node register-commands.js
 ```
 
-### Paso 6: Iniciar el Bot
+### Paso 6: Construir el Proyecto
+
+El bot está escrito en TypeScript y debe ser compilado antes de ejecutarse:
+
+```bash
+npm run build
+```
+
+Esto compilará todos los archivos TypeScript a JavaScript en el directorio `dist/`.
+
+### Paso 7: Iniciar el Bot
 
 ```bash
 npm start
+```
+
+Para desarrollo con recarga automática:
+
+```bash
+npm run dev
 ```
 
 ## 📚 Comandos Disponibles
@@ -233,21 +253,22 @@ npm start
 
 ```
 reactify-bot/
-├── src/
-│   ├── index.js                 # Punto de entrada principal
-│   ├── commands/                # Comandos slash
-│   │   ├── coins/              # Comandos de monedas
-│   │   └── activity/           # Comandos de actividades
-│   ├── events/                  # Manejadores de eventos
-│   ├── interactions/            # Manejadores de interacciones
-│   │   ├── buttons/            # Botones
-│   │   └── modals/             # Modales
-│   ├── services/               # Servicios externos
-│   │   ├── supabase.js        # Base de datos
-│   │   ├── openrouter.js      # IA
-│   │   └── n8n.js             # Webhooks
-│   ├── utils/                  # Utilidades
-│   └── config/                 # Configuración
+├── commands/                # Comandos slash (TypeScript)
+│   ├── coins/              # Comandos de monedas
+│   └── activity/           # Comandos de actividades
+├── events/                  # Manejadores de eventos (TypeScript)
+├── interactions/            # Manejadores de interacciones (TypeScript)
+│   ├── buttons/            # Botones
+│   └── modals/             # Modales
+├── services/               # Servicios externos (TypeScript)
+│   ├── supabase.ts        # Base de datos
+│   ├── openrouter.ts      # IA
+│   └── n8n.ts             # Webhooks
+├── utils/                  # Utilidades (TypeScript)
+├── config/                 # Configuración (TypeScript)
+├── dist/                   # JavaScript compilado (generado)
+├── index.ts                # Punto de entrada principal
+├── tsconfig.json           # Configuración de TypeScript
 ├── package.json
 ├── .env.example
 └── README.md
@@ -263,11 +284,18 @@ reactify-bot/
 
 ## 🛠️ Tecnologías Utilizadas
 
+- **TypeScript** - Lenguaje de programación con tipos estáticos
 - **Discord.js v14** - Librería para interactuar con Discord
 - **Supabase** - Base de datos PostgreSQL
 - **OpenRouter** - API de IA para resúmenes automáticos
 - **Axios** - Cliente HTTP para llamadas API
 - **dotenv** - Gestión de variables de entorno
+
+## 🔧 Scripts Disponibles
+
+- `npm run build` - Compila TypeScript a JavaScript
+- `npm start` - Construye y ejecuta el bot
+- `npm run dev` - Ejecuta el bot en modo desarrollo con ts-node
 
 ## 📝 Notas
 
