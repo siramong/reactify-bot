@@ -29,6 +29,19 @@ if (fs.existsSync(modalPath)) {
   }
 }
 
+// Load select menu handlers
+const selectMenuHandlers = new Map();
+const selectMenuPath = path.join(__dirname, '../interactions/selectMenus');
+if (fs.existsSync(selectMenuPath)) {
+  const selectMenuFiles = fs.readdirSync(selectMenuPath).filter(file => file.endsWith('.js'));
+  for (const file of selectMenuFiles) {
+    const handler = require(path.join(selectMenuPath, file));
+    if (handler.customId && handler.execute) {
+      selectMenuHandlers.set(handler.customId, handler);
+    }
+  }
+}
+
 module.exports = {
   name: Events.InteractionCreate,
   async execute(interaction) {
@@ -117,6 +130,33 @@ module.exports = {
         log.error('MODAL', `Error procesando formulario: ${customId}`, error);
         
         const errorMessage = '`❌` Hubo un error al procesar este formulario.';
+        
+        if (interaction.replied || interaction.deferred) {
+          await interaction.followUp({ content: errorMessage, flags: MessageFlags.Ephemeral });
+        } else {
+          await interaction.reply({ content: errorMessage, flags: MessageFlags.Ephemeral });
+        }
+      }
+    }
+    // Handle string select menu interactions
+    else if (interaction.isStringSelectMenu()) {
+      const customId = interaction.customId;
+      
+      const handler = selectMenuHandlers.get(customId);
+      
+      if (!handler) {
+        log.error('SELECT MENU', `No se encontró el manejador para: ${customId}`);
+        return;
+      }
+
+      log.interaction('SELECT MENU', interaction.user.tag, customId);
+
+      try {
+        await handler.execute(interaction);
+      } catch (error) {
+        log.error('SELECT MENU', `Error procesando selección: ${customId}`, error);
+        
+        const errorMessage = '`❌` Hubo un error al procesar esta selección.';
         
         if (interaction.replied || interaction.deferred) {
           await interaction.followUp({ content: errorMessage, flags: MessageFlags.Ephemeral });
